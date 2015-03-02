@@ -46,18 +46,27 @@ function! s:reverserepeat()
   endif
 endfunction
 
-function! s:sendkeys(sequence)
+function! s:sendkeys(key)
   "send a given key sequence to vim
 
-  " echo a:sequence
+  " echo shellescape(a:key)
+  " echo match(a:key,'<')
+  " if match(a:key,'<') == 1
+  "   echo '"\<lt>' . strpart(a:key,1,strlen(a:key)) . '"')
+  " endif
+  " if match(a:key,'<') > 1
+  "   echo a:key
+  "  let a:key = '"\<lt>' . strpart(a:key,1,strlen(a:key)) . '"')
+  "  echo 'new keyseq is: ' . a:key
+ " endif
   " update the g:prev_motion only if a motion key sequence is receive
-  if a:sequence != "," && a:sequence != ";"
-    " echo 'why ' . a:sequence . " " . g:prev_motion
-    let g:prev_motion = a:sequence
+  if a:key!= "," && a:key!= ";"
+    " echo 'why ' . a:key. " " . g:prev_motion
+    let g:prev_motion = a:key
   endif
-
-  " echo 'updated g:prev_motion = ' . a:sequence
-  call feedkeys((v:count ? v:count : '') . a:sequence, 'n')
+  " echo 'you just sent: ' . a:key
+  " echo 'updated g:prev_motion = ' . a:key
+  call feedkeys((v:count ? v:count : '') . a:key, 'n')
 
 endfunction
 
@@ -65,6 +74,8 @@ endfunction
 " forwards: {lhs} of the mapping to move the cursor forwards
 function! Addkeys(bwd,fwd)
 
+  " echo a:bwd . ' ' . a:fwd
+  " echo ''.a:bwd.''' . ' ' . '''.a:fwd.'''
   " make sure we do not add each key par twice
   if has_key(g:active_keys,a:bwd) || has_key(g:active_keys,a:fwd)
     echoerr a:bwd 'and' a:fwd ' key pair already added to repeatable key list'
@@ -78,13 +89,26 @@ function! Addkeys(bwd,fwd)
   let rhs = ""
 
   " reverse motion mapping
-  let rhs = ' :call <SID>sendkeys('''.a:bwd.''')<CR>'
+  " if match(a:bwd,'<') == 0
+    " this is a special key that must be sent literally
+    " echo shellescape('"\<lt>' . strpart(a:bwd,1,strlen(a:bwd)) . '"')
+    " echo 'aestarsttttttttttttttttttttttttttttt'
+    " " let rhs = ' :call <SID>sendkeys('. '"\<lt>' . strpart(a:bwd,1,strlen(a:bwd)) . '"' .')<CR>'
+    " let rhs = ' :call <SID>sendkeys('. '"<' . strpart(a:bwd,1,strlen(a:bwd)) . '"' .')<CR>'
+    " echo rhs
+    " echo 'with shellescape '
+    " echo shellescape(' :call <SID>sendkeys('. '"\<lt>' . strpart(a:bwd,1,strlen(a:bwd)) . '"' .')<CR>')
+    " echo 'with shellescape 1 '
+    " echo shellescape(' :call <SID>sendkeys('. '"\<lt>' . strpart(a:bwd,1,strlen(a:bwd)) . '"' .')<CR>',1)
+  " else
+  " endif
   " let lhs = mapcheck(a:bwd)
+  let rhs = ' :call <SID>sendkeys('''.a:bwd.''')<CR>'
 
   " check  if the user has remap the key
   if (strlen(mapcheck(a:bwd)) > 0)
     " echo strlen(mapcheck(a:bwd)) a:bwd
-    echo 'aaa'
+    " echo 'aaa'
     let lhs = mapcheck(a:bwd)
     let g:active_keys[a:bwd] = a:fwd. ' is remapped to ' .mapcheck(a:bwd)
   else
@@ -92,11 +116,12 @@ function! Addkeys(bwd,fwd)
     let g:active_keys[a:bwd] = a:fwd
   endif
 
+  " echo 'nnoremap <silent> ' . lhs . rhs
   execute 'nnoremap <silent> ' . lhs . rhs
 
   let rhs = ' :call <SID>sendkeys('''.a:fwd.''')<CR>'
 
-  " check  if the user has remap the key
+
   if (strlen(mapcheck(a:fwd)) > 0)
     " echo strlen(mapcheck(a:fwd)) a:fwd
     let lhs = mapcheck(a:fwd)
@@ -154,8 +179,10 @@ let b:default_mappings = {
             \ 'zk'  : 'zj',
             \ '('   : ')',
             \ '[s'  : ']s',
+            \ '<PageUP>' : '<PageDown>'
             \ }
 
+            " \ "\<C-D>"  : "\<lt>C-U>"
 " \ 'T'   : 't',
 " \ 'F'   : 'f',
 
@@ -172,6 +199,12 @@ for k in keys(b:default_mappings)
   nnoremap T :call <SID>sendkeys('F')<CR>
   nnoremap f :call <SID>sendkeys('t')<CR>
   nnoremap F :call <SID>sendkeys('T')<CR>
+
+  " other special mappings
+  nnoremap <PageDown> :call <SID>sendkeys("\<C-D>")<CR>
+  nnoremap <PageUp> :call <SID>sendkeys("\<lt>C-U>")<CR>
+  " nnoremap <PageUP> :call <SID>sendkeys("\<lt>PageUP>")<CR>
+  " nnoremap <PageDown> :call <SID>sendkeys("\<lt>PageDown>")<CR>
 endfor
 
 " command to list all motion keys
