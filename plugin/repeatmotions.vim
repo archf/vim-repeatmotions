@@ -178,10 +178,10 @@ let b:default_mappings = {
             \ '[z'  : ']z',
             \ 'zk'  : 'zj',
             \ '('   : ')',
-            \ '[s'  : ']s',
-            \ '<PageUP>' : '<PageDown>'
+            \ '[s'  : ']s'
             \ }
 
+            " \ '<PageUP>' : '<PageDown>'
             " \ "\<C-D>"  : "\<lt>C-U>"
 " \ 'T'   : 't',
 " \ 'F'   : 'f',
@@ -212,7 +212,7 @@ command ListRepeatableMotions call <SID>getkeys()
 command ListMappings call <SID>getmappings()
 
 nnoremap  <silent> <Space> :call <SID>repeat()<CR>
-nnoremap <silent> , :call <SID>reverserepeat()<CR>
+nnoremap <silent> <BS> :call <SID>reverserepeat()<CR>
 
 " for some unknown reason this doesn't work
 " noremap <Plug>repeatmoeineonsRepeat :call <SID>repeat()<CR>
