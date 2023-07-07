@@ -59,6 +59,7 @@ function! s:sendkeys(key)
   "  let a:key = '"\<lt>' . strpart(a:key,1,strlen(a:key)) . '"')
   "  echo 'new keyseq is: ' . a:key
  " endif
+
   " update the g:prev_motion only if a motion key sequence is receive
   if a:key!= "," && a:key!= ";"
     " echo 'why ' . a:key. " " . g:prev_motion
@@ -85,8 +86,8 @@ function! Addkeys(bwd,fwd)
     " let g:active_keys[a:fwd] = a:bwd
   endif
 
-  let lhs = ""
-  let rhs = ""
+  let lhs = ''
+  let rhs = ''
 
   " reverse motion mapping
   " if match(a:bwd,'<') == 0
@@ -103,12 +104,12 @@ function! Addkeys(bwd,fwd)
   " else
   " endif
   " let lhs = mapcheck(a:bwd)
+
   let rhs = ' :call <SID>sendkeys('''.a:bwd.''')<CR>'
 
   " check  if the user has remap the key
   if (strlen(mapcheck(a:bwd)) > 0)
     " echo strlen(mapcheck(a:bwd)) a:bwd
-    " echo 'aaa'
     let lhs = mapcheck(a:bwd)
     let g:active_keys[a:bwd] = a:fwd. ' is remapped to ' .mapcheck(a:bwd)
   else
@@ -120,7 +121,6 @@ function! Addkeys(bwd,fwd)
   execute 'nnoremap <silent> ' . lhs . rhs
 
   let rhs = ' :call <SID>sendkeys('''.a:fwd.''')<CR>'
-
 
   if (strlen(mapcheck(a:fwd)) > 0)
     " echo strlen(mapcheck(a:fwd)) a:fwd
@@ -162,14 +162,14 @@ endfunction
 " key = bwd motion
 " value = fwd motion
 let b:default_mappings = {
-            \ '{'   : '}',
             \ '[['  : ']]',
+            \ '[]'  : '][',
+            \ '{'   : '}',
             \ '[c'  : ']c',
             \ '[m'  : ']m',
             \ '[M'  : ']M',
             \ '[*'  : ']*',
             \ '[/'  : ']/',
-            \ '[]'  : '][',
             \ '[''' : ']''',
             \ '[`'  : ']`',
             \ '[('  : '])',
@@ -181,6 +181,13 @@ let b:default_mappings = {
             \ '[s'  : ']s'
             \ }
 
+" This is already mapped for vim filetypes and errors. Perhpas a better
+" workaround could be used to properly fixed the mapping command.
+" Ommiting them for now.
+if &filetype == "vim"
+  unlet b:default_mappings['[[']
+  unlet b:default_mappings['[]']
+endif
             " \ '<PageUP>' : '<PageDown>'
             " \ "\<C-D>"  : "\<lt>C-U>"
 " \ 'T'   : 't',
@@ -188,13 +195,13 @@ let b:default_mappings = {
 
 " load all default mappings
 for k in keys(b:default_mappings)
-  "could also be done with the 'items()' method wich generates a list
+  "could also be done with the 'items()' method which generates a list
   " let text = k
   " let text .= b:default_mappings[k]
   call Addkeys(k, b:default_mappings[k])
 
   " special case for f,F and t,T because i swapped them in my layout
-  " and it recursely remapped
+  " and it would recursely get remapped otherwise.
   nnoremap t :call <SID>sendkeys('f')<CR>
   nnoremap T :call <SID>sendkeys('F')<CR>
   nnoremap f :call <SID>sendkeys('t')<CR>
